@@ -24,7 +24,15 @@ function ManageCoursePage({ courses, authors, loadAuthors, loadCourses, ...props
     }
   }, []);
 
-  return <CourseForm course={course} errors={errors} authors={authors} />;
+  function handleChange(event) {
+    const { name, value } = event.target;
+    setCourse((prevCourse) => ({
+      ...prevCourse,
+      [name]: name === 'authorId' ? parseInt(value, 10) : value,
+    }));
+  }
+
+  return <CourseForm course={course} errors={errors} authors={authors} onChange={handleChange} />;
 }
 
 ManageCoursePage.propTypes = {
