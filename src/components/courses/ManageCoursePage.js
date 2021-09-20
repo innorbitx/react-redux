@@ -5,10 +5,21 @@ import { loadAuthors } from '../../redux/actions/authorActions';
 import PropTypes from 'prop-types';
 import CourseForm from './CourseForm';
 import { newCourse } from '../../../tools/mockData';
+import Spinner from '../common/Spinner';
+import { toast } from 'react-toastify';
 
-function ManageCoursePage({ courses, authors, loadAuthors, loadCourses, saveCourse, history, ...props }) {
+function ManageCoursePage({
+  courses,
+  authors,
+  loadAuthors,
+  loadCourses,
+  saveCourse,
+  history,
+  ...props
+}) {
   const [course, setCourse] = useState({ ...props.course });
   const [errors, setErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (courses.length === 0) {
@@ -36,12 +47,30 @@ function ManageCoursePage({ courses, authors, loadAuthors, loadCourses, saveCour
 
   function handleSave(event) {
     event.preventDefault();
-    saveCourse(course).then(() => {
-      history.push('/courses');
-    });
+    setSaving(true);
+    saveCourse(course)
+      .then(() => {
+        toast.success('Course saved.');
+        history.push('/courses');
+      })
+      .catch((error) => {
+        setSaving(false);
+        setErrors({ onSave: error.message });
+      });
   }
 
-  return <CourseForm course={course} errors={errors} authors={authors} onChange={handleChange} onSave={handleSave} />;
+  return authors.length === 0 || courses.length === 0 ? (
+    <Spinner />
+  ) : (
+    <CourseForm
+      course={course}
+      errors={errors}
+      authors={authors}
+      onChange={handleChange}
+      onSave={handleSave}
+      saving={saving}
+    />
+  );
 }
 
 ManageCoursePage.propTypes = {
@@ -60,7 +89,10 @@ export function getCourseBySlug(courses, slug) {
 
 function mapStateToProps(state, ownProps) {
   const slug = ownProps.match.params.slug;
-  const course = slug && state.courses.length > 0 ? getCourseBySlug(state.courses, slug) : newCourse;
+  const course =
+    slug && state.courses.length > 0
+      ? getCourseBySlug(state.courses, slug)
+      : newCourse;
 
   return {
     course,
